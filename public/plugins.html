@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plugins — Queen Venus MD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#030305;--cyan:#00f0ff;--purple:#8a2be2;--text:#f0f0f0;--muted:#8892b0;--glass:rgba(15,15,20,.4);--gb:rgba(255,255,255,.05);--gh:rgba(255,255,255,.1);--red:#ff4b2b}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:18px 7%;position:fixed;width:100%;top:0;z-index:1000;background:rgba(3,3,5,.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--gb)}
+    .logo{font-size:1.6rem;font-weight:700;font-family:'Space Grotesk',sans-serif;background:linear-gradient(45deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+    .nav-links{list-style:none;display:flex;gap:8px}
+    .nav-links li a{color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500;padding:8px 16px;border-radius:8px;transition:all .3s}
+    .nav-links li a:hover,.nav-links li a.active{color:var(--text);background:var(--gh)}
+    .nav-links li a.active{color:var(--cyan)}
+    main{padding:120px 7% 50px;max-width:1100px;margin:0 auto}
+    .card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:20px;padding:30px}
+    .plugin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+    .plugin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+    .plugin-item{background:var(--gh);border:1px solid var(--gb);border-radius:15px;padding:20px;transition:all .3s;position:relative}
+    .plugin-item:hover{border-color:var(--cyan);transform:translateY(-3px)}
+    .plugin-name{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;display:block;margin-bottom:5px;word-break:break-all}
+    .plugin-meta{font-size:.8rem;color:var(--muted);display:block}
+    .plugin-actions{margin-top:15px;display:flex;gap:10px}
+    .btn{padding:8px 15px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:.3s}
+    .btn-delete{background:rgba(255,75,43,.1);color:var(--red);border:1px solid rgba(255,75,43,.3)}
+    .btn-delete:hover{background:var(--red);color:#fff}
+    .btn-view{background:var(--gh);color:var(--text);border:1px solid var(--gb)}
+    .upload-btn{padding:12px 30px;background:linear-gradient(45deg,var(--purple),var(--cyan));color:#fff;border-radius:10px;font-weight:700;border:none;cursor:pointer;box-shadow:0 10px 20px rgba(138,43,226,.2)}
+    #fileInput{display:none}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;padding:20px}
+    .modal-content{background:var(--bg);border:1px solid var(--gb);border-radius:20px;width:100%;max-width:800px;padding:30px;position:relative}
+    pre{background:#000;color:var(--cyan);padding:15px;border-radius:10px;overflow:auto;max-height:500px;font-size:.85rem}
+    .close-modal{position:absolute;top:20px;right:20px;cursor:pointer;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo">Queen Venus</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="/settings">Settings</a></li>
+      <li><a href="/plugins" class="active">Plugins</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="card">
+      <div class="plugin-header">
+        <h2 style="font-family:'Space Grotesk',sans-serif">🔌 Extensions & Plugins</h2>
+        <div>
+          <input type="file" id="fileInput" accept=".js" onchange="uploadPlugin()">
+          <button onclick="document.getElementById('fileInput').click()" class="upload-btn">➕ Upload Plugin</button>
+        </div>
+      </div>
+      
+      <div id="pluginList" class="plugin-grid">
+        <!-- Plugins appear here -->
+        <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:50px">Loading plugins...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Code Viewer Modal -->
+  <div id="codeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal()">✕ Close</span>
+      <h3 id="modalTitle" style="margin-bottom:15px">Plugin Content</h3>
+      <pre id="codeBox"></pre>
+    </div>
+  </div>
+
+  <script>
+    async function loadPlugins() {
+      const res = await fetch('/api/plugins');
+      const { data } = await res.json();
+      const list = document.getElementById('pluginList');
+      list.innerHTML = data.length ? '' : '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:50px">No plugins found. Upload your first one!</div>';
+      
+      data.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'plugin-item';
+        div.innerHTML = `
+          <span class="plugin-name">📄 ${p.name}</span>
+          <span class="plugin-meta">${(p.size/1024).toFixed(1)} KB • ${new Date(p.modified).toLocaleDateString()}</span>
+          <div class="plugin-actions">
+            <button onclick="viewPlugin('${p.name}')" class="btn btn-view">👀 View</button>
+            <button onclick="deletePlugin('${p.name}')" class="btn btn-delete">🗑️ Delete</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    async function uploadPlugin() {
+      const input = document.getElementById('fileInput');
+      if(!input.files.length) return;
+      const formData = new FormData();
+      formData.append('plugin', input.files[0]);
+
+      const res = await fetch('/api/plugins/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if(data.success) {
+        alert(data.message);
+        loadPlugins();
+      } else {
+        alert(data.message);
+      }
+      input.value = '';
+    }
+
+    async function deletePlugin(name) {
+      if(!confirm('Delete plugin ' + name + '?')) return;
+      const res = await fetch('/api/plugins/' + name, { method: 'DELETE' });
+      if((await res.json()).success) loadPlugins();
+    }
+
+    async function viewPlugin(name) {
+      const res = await fetch(`/api/plugins/${name}/content`);
+      const { data } = await res.json();
+      document.getElementById('modalTitle').innerText = '📄 ' + name;
+      document.getElementById('codeBox').innerText = data;
+      document.getElementById('codeModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('codeModal').style.display = 'none'; }
+
+    loadPlugins();
+  </script>
+</body>
+</html>

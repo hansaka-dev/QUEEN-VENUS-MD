@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings — Queen Venus MD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#030305;--cyan:#00f0ff;--purple:#8a2be2;--text:#f0f0f0;--muted:#8892b0;--glass:rgba(15,15,20,.4);--gb:rgba(255,255,255,.05);--gh:rgba(255,255,255,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:18px 7%;position:fixed;width:100%;top:0;z-index:1000;background:rgba(3,3,5,.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--gb)}
+    .logo{font-size:1.6rem;font-weight:700;font-family:'Space Grotesk',sans-serif;background:linear-gradient(45deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+    .nav-links{list-style:none;display:flex;gap:8px}
+    .nav-links li a{color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500;padding:8px 16px;border-radius:8px;transition:all .3s}
+    .nav-links li a:hover,.nav-links li a.active{color:var(--text);background:var(--gh)}
+    .nav-links li a.active{color:var(--cyan)}
+    main{padding:120px 7% 50px;max-width:1100px;margin:0 auto}
+    .card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:20px;padding:30px}
+    .card-title{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;margin-bottom:30px;display:flex;align-items:center;justify-content:space-between}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:25px}
+    .form-group{margin-bottom:15px}
+    label{display:block;margin-bottom:8px;font-size:.9rem;color:var(--muted);font-weight:500}
+    input[type="text"]{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--gb);border-radius:10px;color:var(--text);padding:12px;outline:none}
+    input[type="text"]:focus{border-color:var(--cyan)}
+    .toggle-group{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid var(--gb)}
+    .switch{position:relative;display:inline-block;width:45px;height:24px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#333;transition:.4s;border-radius:24px}
+    .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:#fff;transition:.4s;border-radius:50%}
+    input:checked + .slider{background-color:var(--cyan)}
+    input:checked + .slider:before{transform:translateX(21px)}
+    .btn-save{padding:12px 40px;background:linear-gradient(45deg,var(--purple),var(--cyan));color:#fff;border-radius:10px;font-weight:700;border:none;cursor:pointer;margin-top:30px;box-shadow:0 10px 20px rgba(138,43,226,.2)}
+    .btn-save:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(138,43,226,.3)}
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo">Queen Venus</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="/settings" class="active">Settings</a></li>
+      <li><a href="/plugins">Plugins</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="card">
+      <div class="card-title">⚙️ Bot Configurations <button onclick="saveSettings()" class="btn-save" style="margin:0;padding:8px 25px;font-size:.9rem">Save Changes</button></div>
+      <form id="settingsForm">
+        <div class="form-grid">
+          <!-- Text Inputs -->
+          <div class="form-group"><label>Bot Number</label><input type="text" name="BOT_NUMBER" placeholder="947..." id="BOT_NUMBER"></div>
+          <div class="form-group"><label>Prefix</label><input type="text" name="PREFIX" placeholder="." id="PREFIX"></div>
+          <div class="form-group"><label>Owner Name</label><input type="text" name="OWNERNAME" id="OWNERNAME"></div>
+          <div class="form-group"><label>Mode (public/private)</label><input type="text" name="MODE" id="MODE"></div>
+          <div class="form-group"><label>Status Reaction Emoji</label><input type="text" name="EMOJI" id="EMOJI"></div>
+          <div class="form-group"><label>OMDB API Key</label><input type="text" name="OMDBAPI_KEY" id="OMDBAPI_KEY"></div>
+          
+          <!-- Toggles -->
+          <div class="form-group"><div class="toggle-group"><span>Auto Read Status</span><label class="switch"><input type="checkbox" name="AUTOREADSTATUS" id="AUTOREADSTATUS"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Read Commands</span><label class="switch"><input type="checkbox" name="READCMD" id="READCMD"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Always Online</span><label class="switch"><input type="checkbox" name="ALLWAYSONLINE" id="ALLWAYSONLINE"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Auto Sticker</span><label class="switch"><input type="checkbox" name="AUTOSTICKER" id="AUTOSTICKER"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Auto Reply</span><label class="switch"><input type="checkbox" name="AUTOREPLY" id="AUTOREPLY"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Auto News</span><label class="switch"><input type="checkbox" name="AUTONEWS" id="AUTONEWS"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Anti Link</span><label class="switch"><input type="checkbox" name="ANTILINK" id="ANTILINK"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Anti Badword</span><label class="switch"><input type="checkbox" name="ANTIBAD" id="ANTIBAD"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Anti Bot</span><label class="switch"><input type="checkbox" name="ANTIBOT" id="ANTIBOT"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Anti Delete</span><label class="switch"><input type="checkbox" name="ANTIDELETE" id="ANTIDELETE"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Auto Typing</span><label class="switch"><input type="checkbox" name="AUTOTYPING" id="AUTOTYPING"><span class="slider"></span></label></div></div>
+          <div class="form-group"><div class="toggle-group"><span>Auto Recording</span><label class="switch"><input type="checkbox" name="AUTORECORDING" id="AUTORECORDING"><span class="slider"></span></label></div></div>
+        </div>
+      </form>
+      <button onclick="saveSettings()" class="btn-save">💾 Save All Configurations</button>
+    </div>
+  </main>
+
+  <script>
+    async function loadSettings() {
+      const res = await fetch('/api/settings');
+      const { data } = await res.json();
+      for (const key in data) {
+        const el = document.getElementById(key);
+        if (el) {
+          if (el.type === 'checkbox') el.checked = data[key];
+          else el.value = data[key] || '';
+        }
+      }
+    }
+
+    async function saveSettings() {
+      const form = document.getElementById('settingsForm');
+      const formData = new FormData(form);
+      const settings = {};
+      
+      // Handle checkboxes specifically
+      form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        settings[cb.name] = cb.checked;
+      });
+      // Handle text inputs
+      form.querySelectorAll('input[type="text"]').forEach(input => {
+        settings[input.name] = input.value;
+      });
+
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+
+      if ((await res.json()).success) {
+        alert('🎉 Settings updated successfully!');
+      } else {
+        alert('❌ Error saving settings.');
+      }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

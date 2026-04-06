@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pair Code — Queen Venus MD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&family=Cinzel:wght@600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#030305;--cyan:#00f0ff;--purple:#8a2be2;--text:#f0f0f0;--muted:#8892b0;--glass:rgba(15,15,20,.4);--gb:rgba(255,255,255,.05);--gh:rgba(255,255,255,.1);--gold:#FFD700}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
+    .bg-fx{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at center, #3a1000 0%, #050505 70%);opacity:.8}
+    .card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--gb);border-radius:24px;padding:50px 40px;width:100%;max-width:450px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,.5);animation:float 6s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    h2{font-family:'Cinzel',serif;color:var(--gold);font-size:2rem;margin-bottom:10px;letter-spacing:1px;text-shadow:0 0 15px rgba(255,215,0,.3)}
+    p{color:var(--muted);font-size:.9rem;margin-bottom:30px}
+    input{width:100%;padding:15px;background:rgba(0,0,0,.5);border:1px solid var(--gb);border-radius:12px;color:var(--gold);font-size:1.1rem;text-align:center;outline:none;margin-bottom:20px;letter-spacing:1px;transition:.3s}
+    input:focus{border-color:var(--gold);box-shadow:0 0 20px rgba(255,215,0,.2)}
+    .btn{width:100%;padding:15px;background:linear-gradient(45deg,#B8860B,var(--gold));color:#000;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;letter-spacing:1px;transition:.3s;box-shadow:0 10px 25px rgba(255,215,0,.2)}
+    .btn:hover{transform:translateY(-3px);box-shadow:0 15px 35px rgba(255,215,0,.4)}
+    #pairContent{margin-top:25px}
+    .code-box{margin-top:15px;padding:15px;background:rgba(255,215,0,.1);border:1px dashed var(--gold);border-radius:12px;color:var(--gold);font-size:1.8rem;font-weight:700;letter-spacing:4px;cursor:pointer;transition:.3s}
+    .code-box:hover{background:rgba(255,215,0,.2)}
+    .back-nav{position:fixed;top:30px;left:30px;color:var(--muted);text-decoration:none;font-size:.9rem;display:flex;align-items:center;gap:8px}
+    .back-nav:hover{color:var(--text)}
+  </style>
+</head>
+<body>
+  <div class="bg-fx"></div>
+  <a href="/" class="back-nav">← Back to Home</a>
+
+  <div class="card">
+    <h2>Link Device</h2>
+    <p>Enter your WhatsApp number with country code</p>
+    <div id="inputGroup">
+      <input type="number" id="number" placeholder="Eg: 94779912589">
+      <button onclick="generateCode()" id="submitBtn" class="btn">GENERATE CODE</button>
+    </div>
+    <div id="pairContent"></div>
+    
+    <div style="margin-top:30px;font-size:.8rem;color:var(--muted)">
+      <p>Session ID will be sent to your WhatsApp.<br>Copy and paste it in the Dashboard.</p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+  <script>
+    const subBtn = document.getElementById('submitBtn');
+    const numInput = document.getElementById('number');
+    const resDiv = document.getElementById('pairContent');
+
+    async function generateCode() {
+      const num = numInput.value.replace(/[^0-9]/g, '');
+      if (num.length < 10) return alert('Enter a valid WhatsApp number.');
+
+      subBtn.innerText = 'GENERATING...';
+      subBtn.disabled = true;
+      resDiv.innerHTML = '<span style="color:var(--gold)">Summoning the code... ⏳</span>';
+
+      try {
+        const { data } = await axios("/code?number=" + num);
+        const code = data.code || "FAILED";
+        resDiv.innerHTML = `
+          <div class="code-box" id="copyCode" onclick="copyToClipboard('${code}')">
+            ${code}
+          </div>
+          <p style="margin-top:10px;color:var(--cyan)">Click to Copy</p>
+        `;
+      } catch (err) {
+        resDiv.innerHTML = '<span style="color:#ff4500">❌ Error generating code.</span>';
+      } finally {
+        subBtn.innerText = 'GENERATE CODE';
+        subBtn.disabled = false;
+      }
+    }
+
+    async function copyToClipboard(text) {
+      await navigator.clipboard.writeText(text);
+      const box = document.getElementById('copyCode');
+      const original = box.innerText;
+      box.innerText = 'COPIED ✅';
+      box.style.color = '#00f260';
+      box.style.borderColor = '#00f260';
+      setTimeout(() => {
+        box.innerText = original;
+        box.style.color = 'var(--gold)';
+        box.style.borderColor = 'var(--gold)';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
