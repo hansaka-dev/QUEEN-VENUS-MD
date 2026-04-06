@@ -46,7 +46,7 @@
     "google-tts-api": "2.0.2",
     "got": "^14.4.5",
     "https": "^1.0.0",
-    "jimp": "^1.6.0",
+    "jimp": "0.16.13",
     "link-preview-js": "^3.0.5",
     "lyrics-search": "^1.0.0",
     "megajs": "^1.1.7",
