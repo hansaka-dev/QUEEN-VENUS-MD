@@ -1,0 +1,24 @@
+function gatea(x)
+{
+	var d = new Date();
+	d.setTime(d.getTime() + (48*60*60*1000));
+	var expires = "expires="+ d.toUTCString();
+	document.cookie = "key="+x+";" + expires + ";path=/";
+	
+	if(localStorage.visited !==undefined)
+	{
+		var spl=localStorage.visited.split(x);
+		var i2=spl.length;
+		if(i2>1)
+		{
+			
+		}
+---
+function gateh(x)
+{
+	var d = new Date();
+	d.setTime(d.getTime() + (48*60*60*1000));
+	var expires = "expires="+ d.toUTCString();
+	document.cookie = "key="+x+";" + expires + ";path=/";
+}
+---
