@@ -54,7 +54,12 @@ function handleCommand(conn, mek, m, context) {
   const commands = loadCommands();
   const cmd = commands.get(command);
 
-  if (!cmd) return;
+  if (!cmd) {
+    reply(
+      "❌ මෙය command එකක් නොවේ.\nවිධාන: .anime <search>\nඋදාහරණයක්: .anime naruto"
+    );
+    return;
+  }
 
   if (cmd.ownerOnly && !isOwner) {
     reply("❌ Private command. Access denied.");

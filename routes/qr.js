@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 let router = express.Router();
 const pino = require('pino');
+const logger = pino({ level: 'silent' });
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -46,14 +47,21 @@ router.get('/', async (req, res) => {
 
   async function VENUS_QR_CODE() {
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+    const { version } = await fetchLatestBaileysVersion();
     try {
       const { version } = await fetchLatestBaileysVersion();
       let sock = makeWASocket({
         version,
-        auth: state,
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, logger),
+        },
         printQRInTerminal: false,
+        generateHighQualityLinkPreview: true,
         logger: pino({ level: 'silent' }),
-        browser: Browsers.macOS('Desktop'),
+        syncFullHistory: false,
+        browser: Browsers.ubuntu('Chrome'),
+        markOnlineOnConnect: false,
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
       });

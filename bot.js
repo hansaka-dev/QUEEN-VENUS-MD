@@ -36,6 +36,7 @@ let botStatus = {
   messagesHandled: 0,
 };
 let shouldReconnect = true;
+const processedMessageIds = new Set();
 
 // ----- Session Setup -----
 async function setupSession(config) {
@@ -84,7 +85,7 @@ async function startBot() {
   const tempConfig = { ...config, SESSION_ID: finalSessionId };
   await setupSession(tempConfig);
 
-  const { handleCommand } = require("./src/utils/commandHandler");
+  const { handleCommand, loadCommands } = require("./src/utils/commandHandler");
   const getPrefix = () => config.PREFIX || ".";
 
   addLog("🚀 Queen Venus MD — System booting up (v1.0.3)...");
@@ -147,6 +148,14 @@ async function startBot() {
 
       mek = mek.messages[0];
       if (!mek.message) return;
+      if (mek.key?.id) {
+        if (processedMessageIds.has(mek.key.id)) return;
+        processedMessageIds.add(mek.key.id);
+        if (processedMessageIds.size > 1000) {
+          const firstKey = processedMessageIds.values().next().value;
+          processedMessageIds.delete(firstKey);
+        }
+      }
       mek.message =
         getContentType(mek.message) === "ephemeralMessage"
           ? mek.message.ephemeralMessage.message
@@ -209,8 +218,8 @@ async function startBot() {
       const quoted =
         type === "extendedTextMessage" &&
         mek.message.extendedTextMessage.contextInfo != null
-          ? mek.message.extendedTextMessage.contextInfo.quotedMessage || []
-          : [];
+          ? mek.message.extendedTextMessage.contextInfo.quotedMessage || null
+          : null;
 
       const isGroup = from.endsWith("@g.us");
       const sender = mek.key.fromMe
@@ -236,6 +245,48 @@ async function startBot() {
 
       const reply = (text) =>
         conn.sendMessage(from, { text }, { quoted: mek });
+
+      const numberMatch = body.trim().match(/^(\d+)$/);
+      const selectedNumber = numberMatch ? numberMatch[1] : null;
+      const userId = senderNumber;
+      const userAnimeState = global.animeState?.[userId] || null;
+      const userStage = userAnimeState?.stage || null;
+
+      if (!isCmd && selectedNumber) {
+        if (userAnimeState && ['search', 'anime', 'range'].includes(userStage)) {
+          await conn
+            .sendMessage(from, { react: { text: '🔍', key: mek.key } })
+            .catch(() => {});
+          const commands = loadCommands();
+          const animeCmd = commands.get('anime');
+          if (animeCmd) {
+            botStatus.messagesHandled++;
+            try {
+              await animeCmd.execute(conn, mek, [selectedNumber], {
+                from,
+                prefix,
+                quoted,
+                body,
+                command: 'anime',
+                args: [selectedNumber],
+                q: selectedNumber,
+                isGroup,
+                reply,
+              });
+            } catch (err) {
+              console.error('[ERROR] Anime selection execution:', err.message);
+              reply('❌ Bot error during anime selection.');
+            }
+            return;
+          }
+        }
+        if (userAnimeState) {
+          reply(
+            '❌ තේරුමක් නැහැ. ඔබගේ Anime selection session එක ගැටලුවට පත් වී ඇති අතර, නැවත .anime <search> හරහා ආරම්භ කරන්න.'
+          );
+          return;
+        }
+      }
 
       if (isCmd) {
         botStatus.messagesHandled++;
@@ -263,6 +314,16 @@ async function startBot() {
           isAdmins,
           reply,
         });
+      } else {
+        if (selectedNumber) {
+          reply(
+            '❌ මෙය command එකක් නොවේ.\nඔබ ඇතුළත් කළ අංකය සඳහා, කරුණාකර .anime සෙවීම් ප්‍රතිඵලයකට reply කරන්න.\nexample: .anime naruto'
+          );
+        } else if (body.trim()) {
+          reply(
+            '❌ මෙය command එකක් නොවේ.\ncommands: .anime <search>\nඋදාහරණය: .anime naruto'
+          );
+        }
       }
     } catch (err) {
       addLog(`⚠️ Message handler error: ${err.message}`);

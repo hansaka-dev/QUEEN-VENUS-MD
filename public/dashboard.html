@@ -129,6 +129,9 @@
 
     async function startBot() {
       addLog('System', 'Starting bot...');
+      const saved = await saveSession();
+      if (!saved) return;
+
       const res = await fetch('/api/bot/start', { method: 'POST' });
       const data = await res.json();
       if (!data.success) alert(data.message);
@@ -144,13 +147,29 @@
       await fetch('/api/bot/restart', { method: 'POST' });
     }
 
-    async function saveSession() {
+    async function saveSession(notify = true) {
+      const sessionValue = sessInput.value.trim();
+      if (!sessionValue) {
+        if (notify) alert('Please paste the Session ID before saving.');
+        return false;
+      }
+      if (!sessionValue.includes('QUEEN VENUS =')) {
+        if (notify) alert('Session ID should start with "QUEEN VENUS =".');
+        return false;
+      }
+
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ SESSION_ID: sessInput.value })
+        body: JSON.stringify({ SESSION_ID: sessionValue })
       });
-      if((await res.json()).success) alert('Session ID saved!');
+      const result = await res.json();
+      if (result.success) {
+        if (notify) alert('Session ID saved!');
+        return true;
+      }
+      if (notify) alert('Failed to save Session ID.');
+      return false;
     }
 
     function addLog(time, msg) {
